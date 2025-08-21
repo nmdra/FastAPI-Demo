@@ -50,6 +50,7 @@ jobs:
           push: true
           files: |
             ./docker-bake.hcl
+          targets: prod
           set: |
             *.labels.org.opencontainers.image.revision=${{ github.sha }}
             *.cache-from=type=gha
