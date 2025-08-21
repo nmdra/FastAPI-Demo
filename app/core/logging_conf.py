@@ -1,12 +1,21 @@
 import logging
 import sys
 from pythonjsonlogger.json import JsonFormatter
+from app.core.config import LOG_LEVEL
 
 class _ExcludeHealthFilter(logging.Filter):
     """Optionally exclude overly chatty health checks."""
     def filter(self, record: logging.LogRecord) -> bool:
         msg = getattr(record, 'msg', '')
         return not (isinstance(msg, str) and 'GET /health' in msg)
+
+level_mapping = {
+    "DEBUG": logging.DEBUG,
+    "INFO": logging.INFO,
+    "WARNING": logging.WARNING,
+    "ERROR": logging.ERROR,
+    "CRITICAL": logging.CRITICAL
+}
 
 def configure_logging(service_name: str = "fastapi-demo") -> None:
     handler = logging.StreamHandler(sys.stdout)
@@ -17,7 +26,10 @@ def configure_logging(service_name: str = "fastapi-demo") -> None:
     handler.setFormatter(formatter)
 
     root = logging.getLogger()
-    root.setLevel(logging.INFO)
+
+    log_level = level_mapping.get(LOG_LEVEL.upper() if LOG_LEVEL else "INFO", logging.INFO)
+    print(log_level)
+    root.setLevel(log_level)
     root.handlers = [handler]
     root.addFilter(_ExcludeHealthFilter())
 
