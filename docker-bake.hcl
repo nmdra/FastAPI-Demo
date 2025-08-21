@@ -1,5 +1,9 @@
 variable "TAG" {
-  default = "0.0.1"
+  default = "latest"
+}
+
+variable "registry" {
+    default = "ghcr.io/nmdra"
 }
 
 group "default" {
@@ -10,8 +14,8 @@ target "dev" {
   dockerfile = "Dockerfile.dev"
   context    = "."
   tags = [
-    "nimendra/fastapi-demo:dev",
-    "nimendra/fastapi-demo:${TAG}-dev"
+    "${registry}/fastapi-demo:dev",
+    "${registry}/fastapi-demo:${TAG}-dev"
   ]
   args = {
     ENV = "development"
@@ -22,8 +26,7 @@ target "prod" {
   dockerfile = "Dockerfile.prod"
   context    = "."
   tags = [
-    "nimendra/fastapi-demo:0.0.1",
-    "nimendra/fastapi-demo:${TAG}"
+    "${registry}/fastapi-demo:${TAG}"
   ]
   args = {
     ENV = "production"
