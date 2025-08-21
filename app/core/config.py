@@ -7,4 +7,4 @@ if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY environment variable is not set.")
 
 if not LOG_LEVEL:
-    LOG_LEVEL="INFO"
+    LOG_LEVEL = "INFO"

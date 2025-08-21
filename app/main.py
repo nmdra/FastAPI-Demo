@@ -9,6 +9,7 @@ app = FastAPI(title="FastAPI Demo")
 # Routers
 app.include_router(v1.router, prefix="/api/v1")
 
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
