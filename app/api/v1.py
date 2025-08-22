@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, Request, File, UploadFile, HTTPException
+from fastapi import APIRouter, File, UploadFile, HTTPException
 from google.genai import types
 from google import genai
 from app.api.schemas import CaptionResponse
