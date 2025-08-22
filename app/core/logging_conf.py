@@ -33,7 +33,6 @@ def configure_logging(service_name: str = "fastapi-demo") -> None:
     log_level = level_mapping.get(
         LOG_LEVEL.upper() if LOG_LEVEL else "INFO", logging.INFO
     )
-    print(log_level)
     root.setLevel(log_level)
     root.handlers = [handler]
     root.addFilter(_ExcludeHealthFilter())

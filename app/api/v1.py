@@ -4,6 +4,11 @@ from google.genai import types
 from google import genai
 from app.api.schemas import CaptionResponse
 from app.core.config import GEMINI_API_KEY
+from prometheus_client import Counter
+
+caption_requests = Counter(
+    "image_caption_requests_total", "Total number of image caption requests"
+)
 
 logger = logging.getLogger("app.api.v1")
 router = APIRouter()
@@ -11,15 +16,10 @@ router = APIRouter()
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 
-@router.get("/hello")
-async def hello(request: Request):
-    client_host = request.client.host if request.client else "unknown"
-    logger.info("Hello endpoint called", extra={"client_host": client_host})
-    return {"message": "Hello, FastAPI!"}
-
-
 @router.post("/image/caption", response_model=CaptionResponse)
 async def generate_caption(file: UploadFile = File(...)):
+    caption_requests.inc()
+
     if file.content_type not in ["image/jpeg", "image/png"]:
         raise HTTPException(
             status_code=400, detail="Only JPEG or PNG images are supported."

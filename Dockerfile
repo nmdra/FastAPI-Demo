@@ -12,7 +12,6 @@ COPY . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev
 
-
 FROM python:3.13-slim-bookworm AS development
 
 RUN useradd -m app
@@ -30,20 +29,17 @@ CMD ["fastapi", "dev", "--host", "0.0.0.0", "app/main.py"]
 
 FROM python:3.13-slim-bookworm AS production
 
-# Create non-root user
 RUN useradd -m nonroot
 WORKDIR /app
 
-# Copy only the app folder and virtual environment from builder
 COPY --from=builder --chown=nonroot:nonroot /app/.venv /app/.venv
 COPY --from=builder --chown=nonroot:nonroot /app/app /app/app
 
-# Ensure virtualenv binaries are in PATH
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Run as non-root user
 USER nonroot
 
-# Run FastAPI CLI in production
 ENTRYPOINT []
-CMD ["/app/.venv/bin/fastapi", "run", "app/main.py", "--port", "80", "--host", "0.0.0.0"]
+# CMD ["/app/.venv/bin/fastapi", "run", "app/main.py", "--port", "80", "--host", "0.0.0.0"]
+
+CMD ["/app/.venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
