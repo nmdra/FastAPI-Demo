@@ -5,8 +5,9 @@ group "default" {
 }
 
 target "dev" {
-  dockerfile = "Dockerfile.dev"
+  dockerfile = "Dockerfile"
   context    = "."
+  target     = "development"
   tags = [
     "ghcr.io/nmdr/fastapi-demo:dev",
   ]
@@ -17,8 +18,9 @@ target "dev" {
 
 target "prod" {
   inherits = ["docker-metadata-action"]
-  dockerfile = "Dockerfile.prod"
+  dockerfile = "Dockerfile"
   context    = "."
+  target     = "production"
   args = {
     ENV = "production"
   }
