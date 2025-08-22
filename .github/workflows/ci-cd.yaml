@@ -3,6 +3,7 @@ name: Docker Bake Build
 on:
   push:
     tags: ["v*"]
+  pull_request:
   workflow_dispatch:
 
 env:
@@ -10,10 +11,19 @@ env:
   IMAGE_NAME: nimendra/fastapi-demo
 
 jobs:
+  lint:
+    name: Lint with Ruff
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: astral-sh/ruff-action@v3
+
   docker:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
-
+    needs: lint
     permissions:
       contents: read
       packages: write
@@ -31,15 +41,23 @@ jobs:
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
+      - name: Docker Meta 
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE_NAME }}
+          images: |
+            ghcr.io/nmdra/fastapi-demo
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
 
       - name: Docker Bake (build and push)
         uses: docker/bake-action@v6
@@ -47,9 +65,23 @@ jobs:
           push: true
           files: |
             ./docker-bake.hcl
-            cwd://${{ steps.meta.outputs.bake-file-tags }}
-            cwd://${{ steps.meta.outputs.bake-file-annotations }}
+            cwd://${{ steps.meta.outputs.bake-file }}
           targets: prod
           set: |
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
+
+  trivy:
+    name: Scan Docker Image with Trivy
+    runs-on: ubuntu-latest
+    needs: docker
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ghcr.io/nmdra/fastapi-demo:latest
+          format: table
+          exit-code: 1
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
